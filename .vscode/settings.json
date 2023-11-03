@@ -1,0 +1,13 @@
+{
+    "files.associations": {
+        "nrf_delay.h": "c",
+        "ble_conn_state.h": "c",
+        "nrf_drv_twi.h": "c",
+        "nrf_drv_timer.h": "c",
+        "nrf_log_default_backends.h": "c",
+        "nrf_power.h": "c",
+        "nrf_sdh.h": "c",
+        "cmd.h": "c",
+        "pressure.h": "c"
+    }
+}
