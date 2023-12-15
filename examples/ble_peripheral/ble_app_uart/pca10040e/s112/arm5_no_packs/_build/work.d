@@ -52,3 +52,13 @@
 .\_build\work.o: ..\..\..\..\..\..\modules\nrfx\drivers/nrfx_errors.h
 .\_build\work.o: ..\..\..\..\..\..\modules\nrfx\hal/nrf_pwm.h
 .\_build\work.o: ..\..\..\..\..\..\modules\nrfx\hal\nrf_gpio.h
+.\_build\work.o: ..\..\..\..\..\..\components\libraries\log\nrf_log.h
+.\_build\work.o: ..\..\..\..\..\..\components\libraries\util\sdk_common.h
+.\_build\work.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
+.\_build\work.o: ..\..\..\..\..\..\components\libraries\util\sdk_os.h
+.\_build\work.o: ..\..\..\..\..\..\components\libraries\util\sdk_macros.h
+.\_build\work.o: ..\..\..\..\..\..\components\libraries\experimental_section_vars\nrf_section.h
+.\_build\work.o: ..\..\..\..\..\..\components\libraries\strerror\nrf_strerror.h
+.\_build\work.o: ..\..\..\..\..\..\components\libraries\log\src\nrf_log_internal.h
+.\_build\work.o: ..\..\..\..\..\..\components\libraries\log\nrf_log_instance.h
+.\_build\work.o: ..\..\..\..\..\..\components\libraries\log\nrf_log_types.h

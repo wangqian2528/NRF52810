@@ -210,38 +210,45 @@ static void nrf_qwr_error_handler(uint32_t nrf_error)
  * @param[in] p_evt       Nordic UART Service event.
  */
 /**@snippet [Handling the data received over BLE] */
+//static const char helpStr[] = "this is a help str!";
+uint32_t App_Printf(uint8_t *data, uint16_t length);
 static void nus_data_handler(ble_nus_evt_t * p_evt)
 {
 
+    uint8_t cmd_buffer[128];
     if (p_evt->type == BLE_NUS_EVT_RX_DATA)
     {
-        uint32_t err_code;
+        // uint32_t err_code;
 
-        // NRF_LOG_DEBUG("Received data from BLE NUS. Writing data on UART.");
-        NRF_LOG_HEXDUMP_DEBUG(p_evt->params.rx_data.p_data, p_evt->params.rx_data.length);
+        // // NRF_LOG_DEBUG("Received data from BLE NUS. Writing data on UART.");
+        // NRF_LOG_HEXDUMP_DEBUG(p_evt->params.rx_data.p_data, p_evt->params.rx_data.length);
 
-        for (uint32_t i = 0; i < p_evt->params.rx_data.length; i++)
+        // for (uint32_t i = 0; i < p_evt->params.rx_data.length; i++)
+        // {
+        //     do
+        //     {
+        //         err_code = app_uart_put(p_evt->params.rx_data.p_data[i]);
+        //         if ((err_code != NRF_SUCCESS) && (err_code != NRF_ERROR_BUSY))
+        //         {
+        //             NRF_LOG_ERROR("Failed receiving NUS message. Error 0x%x. ", err_code);
+        //             APP_ERROR_CHECK(err_code);
+        //         }
+        //     } while (err_code == NRF_ERROR_BUSY);
+        // }
+
+        //if (p_evt->params.rx_data.p_data[p_evt->params.rx_data.length - 1] == '\n')
         {
-            do
-            {
-                
-
-
-                err_code = app_uart_put(p_evt->params.rx_data.p_data[i]);
-                if ((err_code != NRF_SUCCESS) && (err_code != NRF_ERROR_BUSY))
-                {
-                    NRF_LOG_ERROR("Failed receiving NUS message. Error 0x%x. ", err_code);
-                    APP_ERROR_CHECK(err_code);
-                }
-            } while (err_code == NRF_ERROR_BUSY);
-        }
-        if (p_evt->params.rx_data.p_data[p_evt->params.rx_data.length - 1] == '\r')
-        {
-            while (app_uart_put('\n') == NRF_ERROR_BUSY);
+            // while (app_uart_put('\n') == NRF_ERROR_BUSY);
+            memcpy(cmd_buffer, p_evt->params.rx_data.p_data, p_evt->params.rx_data.length);
+            CmdParse((char*)cmd_buffer);
+            //uint16_t len =p_evt->params.rx_data.length;
+            // ble_nus_data_send(&m_nus, (uint8_t*)p_evt->params.rx_data.p_data, &len, m_conn_handle);
+            // NRF_LOG_INFO("length:%d", len);
+            //App_Printf((uint8_t *)helpStr, strlen(helpStr));
         }
     }
-
 }
+
 /**@snippet [Handling the data received over BLE] */
 
 #ifdef DFU_ADD
@@ -611,6 +618,14 @@ void bsp_event_handler(bsp_event_t event)
 }
 
 
+uint32_t App_Printf(uint8_t *data, uint16_t length)
+{
+    uint32_t err_code;
+    uint16_t len = length;
+    err_code = ble_nus_data_send(&m_nus, data, &len, m_conn_handle);
+    return err_code;
+}
+
 /**@brief   Function for handling app_uart events.
  *
  * @details This function will receive a single character from the app_uart module and append it to
@@ -793,17 +808,20 @@ static void advertising_start(void)
 /**
  * @brief Handler for timer events.
  */
+// extern uint8_t g_work_start;
 static void my_app_timer_handler(void * p_context)
 {
     UNUSED_PARAMETER(p_context);
-    state_machine_loop();
+    state_machine_loop(1);
+    pressure_measure();
+    //NRF_LOG_INFO("STATE:%d", g_work_start);
 }
 
 static void timer_init(void)
 {
     uint32_t err_code = NRF_SUCCESS;
     err_code = app_timer_create(&m_app_tmr, APP_TIMER_MODE_REPEATED, my_app_timer_handler);
-    err_code = app_timer_start(m_app_tmr, APP_TIMER_TICKS(100), NULL);
+    err_code = app_timer_start(m_app_tmr, APP_TIMER_TICKS(1000), NULL);
     APP_ERROR_CHECK(err_code);
 }
 
@@ -831,7 +849,8 @@ int main(void)
     services_init();
     advertising_init();
     conn_params_init();
-    
+    twi_init();
+
     valve_init();
     pump_init();
 

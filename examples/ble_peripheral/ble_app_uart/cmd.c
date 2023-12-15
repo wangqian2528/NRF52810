@@ -1,4 +1,6 @@
 #include "cmd.h"
+#include "work.h"
+#include "pressure.h"
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -6,26 +8,155 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define CMD_NUM 1
+char charBuf[128];
 
-static int do_help(const char *cmd, char *params[], int param_size);
+const char helpStr[] = "this is a help str!";
+const char validStr[] = "this is a valid str!";
+
+const char startStr[] = "start!";
+const char stopStr[] = "stop!";
+
+extern work_state_t g_work_state;
+extern float g_target_pressure_value; // 目标压力
+extern int g_hold_time;
+extern int g_deflating_time;
+
+extern uint32_t App_Printf(uint8_t *data, uint16_t length);
+
+#define CMD_NUM 8
+
+static int do_start(const char *cmd, char *params[], int param_size);
+static int do_stop(const char *cmd, char *params[], int param_size);
+static int do_getPressure(const char *cmd, char *params[], int param_size);
+static int do_setTargetPressure(const char *cmd, char *params[], int param_size);
+static int do_setDwellTime(const char *cmd, char *params[], int param_size);
+static int do_getDwellTime(const char *cmd, char *params[], int param_size);
+static int do_setintervalTime(const char *cmd, char *params[], int param_size);
+static int do_getintervalTime(const char *cmd, char *params[], int param_size);
 
 static const cmd_t app_cmd_array[CMD_NUM] = {
-    {"help", do_help, "show all support cmd"},
+    {"Start", do_start, "start run"},
+    {"Stop", do_stop, "stop run"},
+    {"getPressure", do_getPressure, "get Pressure"},
+    {"setTargetPressure", do_setTargetPressure, "set Target Pressure"},
+    {"setDwellTime", do_setDwellTime, "set Dwell Time"},
+    {"getDwellTime", do_getDwellTime, "get Dwell Time"},
+    {"setintervalTime", do_setintervalTime, "set interval Time"},
+    {"getintervalTime", do_getintervalTime, "get interval Time"},
 };
 
-static int do_help(const char *cmd, char *params[], int param_size)
+//
+//
+//
+//
+//
+static int do_start(const char *cmd, char *params[], int param_size)
 {
-    for (int i = 0; i < CMD_NUM; i++)
+    g_work_state = WORK_START;
+    App_Printf((uint8_t *)startStr, strlen(startStr));
+    return 0;
+}
+
+static int do_stop(const char *cmd, char *params[], int param_size)
+{
+    g_work_state = WORK_IDLE;
+    App_Printf((uint8_t *)stopStr, strlen(stopStr));
+    return 0;
+}
+
+static int do_getPressure(const char *cmd, char *params[], int param_size)
+{
+    char strbuf[32];
+    float pre = get_pressure_value();
+    sprintf(strbuf, "pressure:%0.2f\n", pre);
+    App_Printf((uint8_t *)strbuf, strlen(strbuf));
+    return 0;
+}
+
+static int do_setTargetPressure(const char *cmd, char *params[], int param_size)
+{
+    char strbuf[32];
+
+    if (param_size != 1)
     {
-        printf("%s", app_cmd_array[i].cmd);
-        printf("--------%s", app_cmd_array[i].des);
-        printf("\n");
+        return 0;
     }
+
+    float pre = atof(params[0]);
+    g_target_pressure_value = pre;
+
+    sprintf(strbuf, "set pressure:%0.2f\n", pre);
+    App_Printf((uint8_t *)strbuf, strlen(strbuf));
 
     return 0;
 }
 
+static int do_setDwellTime(const char *cmd, char *params[], int param_size)
+{
+    char strbuf[32];
+
+    if (param_size != 1)
+    {
+        return 0;
+    }
+
+    int setTime = atoi(params[0]);
+    g_hold_time = setTime;
+
+    sprintf(strbuf, "hold time :%d\n", setTime);
+    App_Printf((uint8_t *)strbuf, strlen(strbuf));
+
+    return 0;
+}
+
+static int do_getDwellTime(const char *cmd, char *params[], int param_size)
+{
+    char strbuf[32];
+
+    int setTime = g_hold_time;
+
+    sprintf(strbuf, "hold time :%d\n", setTime);
+    App_Printf((uint8_t *)strbuf, strlen(strbuf));
+
+    return 0;
+}
+
+static int do_setintervalTime(const char *cmd, char *params[], int param_size)
+{
+    char strbuf[32];
+
+    if (param_size != 1)
+    {
+        return 0;
+    }
+
+    int setTime = atoi(params[0]);
+    g_deflating_time = setTime;
+
+    sprintf(strbuf, "interval time :%d\n", setTime);
+    App_Printf((uint8_t *)strbuf, strlen(strbuf));
+
+    return 0;
+}
+
+static int do_getintervalTime(const char *cmd, char *params[], int param_size)
+{
+    char strbuf[32];
+
+    int setTime = g_deflating_time;
+
+    sprintf(strbuf, "interval time :%d\n", setTime);
+    App_Printf((uint8_t *)strbuf, strlen(strbuf));
+
+    return 0;
+}
+
+//
+//
+//
+//
+//
+//
 int ssz_str_split(char *str, const char *accept_delimiter, char *substrs[], int substr_max)
 {
     if (!str)
@@ -78,5 +209,5 @@ void CmdParse(char *cmd)
             return;
         }
     }
-    printf("not valid cmd!\n");
+    App_Printf((uint8_t *)validStr, strlen(validStr));
 }
